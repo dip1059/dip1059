@@ -1,0 +1,223 @@
+---
+import { Image } from "astro:assets";
+import Base from "../layouts/Base.astro";
+import OrderBook from "../components/OrderBook.astro";
+import photo from "../assets/photo.webp";
+import { profile, facts, projects, earlier, experience, skills, openSource } from "../data/profile";
+
+const host = (url: string) => new URL(url).hostname;
+const year = new Date().getFullYear();
+---
+<Base>
+  <header class="top">
+    <nav class="wrap nav" aria-label="Main">
+      <a class="brand" href="#main">{profile.name}</a>
+      <ul>
+        <li><a href="#work">Work</a></li>
+        <li><a href="#experience">Experience</a></li>
+        <li><a href="#skills">Skills</a></li>
+        <li><a class="btn btn-small" href={`mailto:${profile.email}`}>Email me</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main id="main">
+    <section class="wrap hero">
+      <div class="hero-text">
+        <div class="who">
+          <Image src={photo} alt={`Portrait of ${profile.name}`} width={72} height={72} widths={[72, 144]} sizes="72px" loading="eager" fetchpriority="high" class="avatar" />
+          <p><strong>{profile.name}</strong><br /><span class="muted">{profile.title}</span></p>
+        </div>
+        <h1>{profile.headline}</h1>
+        <p class="lede">{profile.summary}</p>
+        <div class="actions">
+          <a class="btn" href={`mailto:${profile.email}`}>Email me</a>
+          <a class="btn btn-ghost" href={profile.links.linkedin} rel="noopener">LinkedIn</a>
+          <a class="btn btn-ghost" href={profile.links.github} rel="noopener">GitHub</a>
+        </div>
+        <dl class="facts">
+          {facts.map((f) => (<div><dt>{f.label}</dt><dd>{f.value}</dd></div>))}
+        </dl>
+      </div>
+      <OrderBook />
+    </section>
+
+    <section id="work" class="wrap block" aria-labelledby="work-title">
+      <h2 id="work-title">Selected work</h2>
+      <div class="block-body">
+        {projects.map((p) => (
+          <article class="project">
+            <header class="project-head">
+              <h3>
+                {p.url ? <a href={p.url} rel="noopener">{p.name}</a> : p.name}
+              </h3>
+              <p class="muted">{p.kind}{p.status && <span class="tag">{p.status}</span>}</p>
+              <p class="meta">{p.role}<br /><span class="muted">{p.period}{p.url && <>, {host(p.url)}</>}</span></p>
+            </header>
+            <div class="project-body">
+              <p>{p.summary}</p>
+              <ul class="ticks">{p.highlights.map((h) => <li>{h}</li>)}</ul>
+              <p class="stack">{p.stack.join(", ")}</p>
+            </div>
+          </article>
+        ))}
+        <div class="earlier">
+          <h3>Earlier</h3>
+          <ul>
+            {earlier.map((e) => (<li><strong>{e.name}</strong> <span class="muted">({e.period})</span>. {e.text}</li>))}
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="experience" class="wrap block" aria-labelledby="exp-title">
+      <h2 id="exp-title">Experience</h2>
+      <ol class="block-body timeline">
+        {experience.map((x) => (
+          <li>
+            <p class="when">{x.period}<br /><span class="muted">{x.duration}</span></p>
+            <div>
+              <h3>{x.role}</h3>
+              <p class="muted">{x.company}</p>
+              <ul class="ticks">{x.points.map((pt) => <li>{pt}</li>)}</ul>
+            </div>
+          </li>
+        ))}
+        <li>
+          <p class="when">2017</p>
+          <div>
+            <h3>B.Sc. (Engg.) in Computer Science & Engineering</h3>
+            <p class="muted">Bangabandhu Sheikh Mujibur Rahman Science and Technology University</p>
+          </div>
+        </li>
+      </ol>
+    </section>
+
+    <section id="skills" class="wrap block" aria-labelledby="skills-title">
+      <h2 id="skills-title">Skills</h2>
+      <dl class="block-body skills">
+        {skills.map(([group, items]) => (<div><dt>{group}</dt><dd>{items.join(", ")}</dd></div>))}
+        <div><dt>Languages spoken</dt><dd>Bengali (native), English (fluent), Hindi (conversational)</dd></div>
+      </dl>
+    </section>
+
+    <section id="open-source" class="wrap block" aria-labelledby="oss-title">
+      <h2 id="oss-title">Open source</h2>
+      <ul class="block-body oss">
+        {openSource.map((o) => (<li><a href={o.url} rel="noopener"><code>{o.name}</code></a><span class="muted">{o.text}</span></li>))}
+      </ul>
+    </section>
+
+    <section id="contact" class="wrap contact" aria-labelledby="contact-title">
+      <h2 id="contact-title">Have a platform that needs to scale?</h2>
+      <p class="muted">I'm open to senior backend and technical leadership roles, and to consulting on exchange, wallet and SaaS architecture.</p>
+      <div class="actions">
+        <a class="btn" href={`mailto:${profile.email}`}>{profile.email}</a>
+        <a class="btn btn-ghost" href={profile.links.linkedin} rel="noopener">LinkedIn</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="wrap foot muted">
+    <p>© {year} {profile.name}. {profile.location}.</p>
+  </footer>
+</Base>
+
+<style>
+  .top {
+    position: sticky; top: 0; z-index: 5;
+    background: color-mix(in srgb, var(--paper) 88%, transparent);
+    backdrop-filter: saturate(1.4) blur(10px);
+    border-bottom: 1px solid var(--rule);
+  }
+  .nav { display: flex; align-items: center; justify-content: space-between; height: 60px; }
+  .brand { font-weight: 600; text-decoration: none; }
+  .nav ul { display: flex; align-items: center; gap: 24px; list-style: none; margin: 0; padding: 0; font-size: 0.95rem; }
+  .nav ul a:not(.btn) { text-decoration: none; color: var(--steel); }
+  .nav ul a:not(.btn):hover { color: var(--ink); }
+
+  .btn {
+    display: inline-flex; align-items: center; min-height: 44px; padding: 0 20px;
+    border-radius: 999px; background: var(--ink); color: var(--paper);
+    font-weight: 500; text-decoration: none; border: 1px solid var(--ink);
+    transition: transform 0.15s ease;
+  }
+  .btn:hover { transform: translateY(-1px); }
+  .btn-ghost { background: transparent; color: var(--ink); border-color: var(--rule); }
+  .btn-ghost:hover { border-color: var(--ink); }
+  .btn-small { min-height: 36px; padding: 0 16px; font-size: 0.9rem; }
+  .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
+
+  .hero {
+    display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+    gap: clamp(40px, 6vw, 88px); align-items: center;
+    padding-block: clamp(56px, 9vw, 112px);
+  }
+  .who { display: flex; align-items: center; gap: 14px; margin-bottom: 36px; line-height: 1.4; }
+  .avatar { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; object-position: 50% 20%; }
+  h1 { font-size: clamp(2.4rem, 5.2vw, 3.9rem); letter-spacing: -0.03em; line-height: 1.04; max-width: 14ch; }
+  .lede { margin-top: 24px; font-size: 1.15rem; max-width: 56ch; color: var(--steel); }
+
+  .facts { display: flex; flex-wrap: wrap; gap: 36px; margin: 48px 0 0; }
+  .facts div { display: flex; flex-direction: column-reverse; }
+  .facts dd { margin: 0; font-size: 2rem; font-weight: 600; letter-spacing: -0.02em; line-height: 1; }
+  .facts dt { color: var(--steel); font-size: 0.9rem; margin-top: 6px; }
+
+  .block {
+    display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 40px;
+    padding-block: clamp(48px, 7vw, 88px); border-top: 1px solid var(--rule);
+  }
+  .block > h2 { font-size: 1.35rem; position: sticky; top: 92px; align-self: start; }
+  .block-body { margin: 0; padding: 0; }
+
+  .project { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.4fr); gap: 32px; padding-bottom: 40px; margin-bottom: 40px; border-bottom: 1px solid var(--rule); }
+  .project h3 { font-size: 1.6rem; letter-spacing: -0.02em; }
+  .project h3 a { text-decoration: none; }
+  .project h3 a:hover { text-decoration: underline; }
+  .project-head > p { margin-top: 6px; }
+  .meta { margin-top: 18px !important; font-size: 0.95rem; }
+  .tag { display: inline-block; margin-left: 8px; padding: 1px 10px; border: 1px solid var(--rule); border-radius: 999px; font-size: 0.8rem; color: var(--ink); vertical-align: 2px; }
+  .ticks { margin: 14px 0 0; padding-left: 1.1em; }
+  .ticks li { margin-top: 6px; }
+  .ticks li::marker { color: var(--bid); }
+  .stack { margin-top: 16px; font-size: 0.92rem; color: var(--steel); }
+
+  .earlier h3 { font-size: 1.05rem; margin-bottom: 8px; }
+  .earlier ul { margin: 0; padding-left: 1.1em; }
+  .earlier li { margin-top: 8px; max-width: 72ch; }
+
+  .timeline { list-style: none; }
+  .timeline > li { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 24px; padding-bottom: 32px; }
+  .timeline > li + li { padding-top: 32px; border-top: 1px solid var(--rule); }
+  .timeline h3 { font-size: 1.15rem; }
+  .when { font-size: 0.95rem; }
+
+  .skills > div { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 24px; padding: 12px 0; border-bottom: 1px solid var(--rule); }
+  .skills > div:first-child { padding-top: 0; }
+  .skills dt { font-weight: 500; }
+  .skills dd { margin: 0; color: var(--steel); }
+
+  .oss { list-style: none; }
+  .oss li { display: grid; grid-template-columns: minmax(0, 260px) minmax(0, 1fr); gap: 24px; padding: 12px 0; border-bottom: 1px solid var(--rule); }
+  .oss li:first-child { padding-top: 0; }
+  .oss code { font-family: var(--mono); font-size: 0.92rem; }
+
+  .contact { padding-block: clamp(64px, 9vw, 120px); border-top: 1px solid var(--rule); }
+  .contact h2 { font-size: clamp(1.8rem, 3.6vw, 2.6rem); letter-spacing: -0.025em; max-width: 20ch; }
+  .contact > p { margin-top: 16px; max-width: 60ch; font-size: 1.1rem; }
+
+  .foot { padding-block: 28px 40px; border-top: 1px solid var(--rule); font-size: 0.9rem; }
+
+  @media (max-width: 900px) {
+    .hero { grid-template-columns: 1fr; }
+    .block { grid-template-columns: 1fr; gap: 24px; }
+    .block > h2 { position: static; }
+    .project { grid-template-columns: 1fr; gap: 16px; }
+  }
+  @media (max-width: 600px) {
+    .nav ul li:not(:last-child) { display: none; }
+    .timeline > li, .skills > div, .oss li { grid-template-columns: 1fr; gap: 4px; }
+    .facts { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .btn { transition: none; } .btn:hover { transform: none; } }
+</style>

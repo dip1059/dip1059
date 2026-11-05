@@ -1,0 +1,106 @@
+---
+// Simulated order book. Server renders a static snapshot; a small script animates it
+// only while visible and only when the user allows motion.
+const ROWS = 7;
+const TICK = 0.5;
+const mid = 67420;
+const level = (i: number, side: 1 | -1) => ({
+  price: (mid + side * (i + 1) * TICK * 4).toFixed(1),
+  size: (0.15 + ((i * 7919) % 13) / 9).toFixed(3),
+  depth: 20 + ((i * 37) % 70),
+});
+const asks = Array.from({ length: ROWS }, (_, i) => level(ROWS - 1 - i, 1));
+const bids = Array.from({ length: ROWS }, (_, i) => level(i, -1));
+---
+<figure class="book" aria-labelledby="book-caption">
+  <div class="book-head"><span>BTC / USDT</span><span class="muted">Order book</span></div>
+  <div class="book-cols" aria-hidden="true"><span>Price (USDT)</span><span>Size (BTC)</span></div>
+  <ol class="side asks" data-side="ask" aria-label="Asks">
+    {asks.map((l) => (
+      <li style={`--d:${l.depth}%`}><span class="p">{l.price}</span><span class="s">{l.size}</span></li>
+    ))}
+  </ol>
+  <div class="spread"><span class="last" data-last>{mid.toFixed(1)}</span><span class="spread-label">last trade</span></div>
+  <ol class="side bids" data-side="bid" aria-label="Bids">
+    {bids.map((l) => (
+      <li style={`--d:${l.depth}%`}><span class="p">{l.price}</span><span class="s">{l.size}</span></li>
+    ))}
+  </ol>
+  <figcaption id="book-caption">A simulated order book. Matching engines like this one are my day-to-day work.</figcaption>
+</figure>
+
+<script>
+  const book = document.querySelector<HTMLElement>(".book");
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+  if (book) {
+    const asks = [...book.querySelectorAll<HTMLLIElement>(".asks li")];
+    const bids = [...book.querySelectorAll<HTMLLIElement>(".bids li")];
+    const last = book.querySelector<HTMLElement>("[data-last]")!;
+    const TICK = 0.5, STEP = 4;
+    let mid = 67420;
+    let timer: number | undefined;
+
+    const paint = () => {
+      mid += (Math.random() - 0.5) * TICK * 6;
+      mid = Math.round(mid / TICK) * TICK;
+      const n = asks.length;
+      asks.forEach((li, i) => {
+        const lvl = n - i;
+        li.children[0].textContent = (mid + lvl * TICK * STEP).toFixed(1);
+        li.children[1].textContent = (0.1 + Math.random() * 1.6).toFixed(3);
+        li.style.setProperty("--d", `${15 + Math.random() * 75}%`);
+      });
+      bids.forEach((li, i) => {
+        li.children[0].textContent = (mid - (i + 1) * TICK * STEP).toFixed(1);
+        li.children[1].textContent = (0.1 + Math.random() * 1.6).toFixed(3);
+        li.style.setProperty("--d", `${15 + Math.random() * 75}%`);
+      });
+      const prev = Number(last.textContent);
+      last.textContent = mid.toFixed(1);
+      last.dataset.dir = mid >= prev ? "up" : "down";
+    };
+
+    const start = () => { if (timer === undefined && !reduce.matches) timer = window.setInterval(paint, 1100); };
+    const stop = () => { if (timer !== undefined) { clearInterval(timer); timer = undefined; } };
+
+    new IntersectionObserver(([e]) => (e.isIntersecting && !document.hidden ? start() : stop())).observe(book);
+    document.addEventListener("visibilitychange", () => (document.hidden ? stop() : start()));
+    reduce.addEventListener("change", () => (reduce.matches ? stop() : start()));
+  }
+</script>
+
+<style>
+  .book {
+    margin: 0;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 14px;
+    padding: 18px 18px 14px;
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    font-variant-numeric: tabular-nums;
+    box-shadow: 0 1px 0 var(--rule), 0 24px 48px -32px rgb(19 35 63 / 0.35);
+  }
+  .book-head, .book-cols, li { display: flex; justify-content: space-between; }
+  .book-head { color: var(--ink); padding: 0 8px 10px; border-bottom: 1px solid var(--rule); }
+  .book-cols { color: var(--steel); font-size: 0.75rem; padding: 10px 8px 6px; }
+  .side { list-style: none; margin: 0; padding: 0; }
+  li { position: relative; padding: 3px 8px; border-radius: 4px; overflow: hidden; }
+  li::before {
+    content: ""; position: absolute; inset: 0 0 0 auto; width: var(--d);
+    transition: width 0.6s ease; opacity: 0.12; z-index: 0;
+  }
+  li span { position: relative; z-index: 1; }
+  .asks li::before { background: var(--ask); }
+  .bids li::before { background: var(--bid); }
+  .asks .p { color: var(--ask); }
+  .bids .p { color: var(--bid); }
+  .s { color: var(--steel); }
+  .spread { display: flex; align-items: baseline; gap: 10px; padding: 10px 8px; margin: 6px 0; border-block: 1px solid var(--rule); }
+  .last { font-size: 1.15rem; color: var(--ink); transition: color 0.3s; }
+  .last[data-dir="up"] { color: var(--bid); }
+  .last[data-dir="down"] { color: var(--ask); }
+  .spread-label { color: var(--steel); }
+  figcaption { font-family: var(--sans); color: var(--steel); font-size: 0.85rem; line-height: 1.45; margin-top: 12px; padding: 0 8px; }
+  @media (prefers-reduced-motion: reduce) { li::before, .last { transition: none; } }
+</style>
